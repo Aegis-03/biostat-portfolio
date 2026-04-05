@@ -13,5 +13,8 @@ Overall, the data quality is good. There was only one variable having more than 
 Cautions should be made when using **Calories consumed at meals** as more than one-fifth of the data were missing <br> 
 The key variables, **Survival time** and **Survival status**, were fully recorded without any missing data. **Age** and **Sex** were also fully recorded
 
+### Visualisation
+Both distributions of the censored and dead are right-skewed. However, most of the death cases were recorded around 150 days after participation while the censored cases highly recorded around 250 days after participation.
+
 ### Next step
 After summarzing the data, the next step would be to identify the relationship between survival time and related variables as well as to identify any potential correlation between variables

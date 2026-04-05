@@ -11,6 +11,7 @@
 library(survival)
 library(dplyr)
 library(readr)
+library(ggplot2)
 
 
 # Inspect the structure
@@ -136,3 +137,21 @@ for (i in 2:ncol(lung_numvar)){
 
 # Write summary CSV to the "output" folder
 write_csv(summary_table, "./week01/day01/output/summary_table.csv")
+
+
+# histogram of time and status
+
+lung |>
+  mutate(status_label = ifelse(status == 1, "Censored", "Dead")) |>
+  ggplot(aes(x = time, fill = status_label)) +
+  geom_histogram(bins = 30, alpha = 0.7, position = "identity") +
+  labs(
+    title = "Distribution of Survival Time",
+    x = "Time (days)",
+    y = "Count",
+    fill = "Status"
+  ) +
+  theme_minimal()
+
+ggsave("./week01/day01/output/survival_time_hist.png",
+       width = 8, height = 5, dpi = 150)
