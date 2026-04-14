@@ -9,4 +9,5 @@ epidemiology, and clinical trial methods — using R and Python.
 ### [Week 1](week01/) — Foundations: Data Types, EDA, Descriptive Statstistics
 [Day 1](week01/day01/) Descriptive statistics with the `lung` dataset from R's `survival` package <br>
 
-[Day 2](week01/day02/)
+[Day 2](week01/day02/) Simulate and visualize probability distributions, and compare them to
+the empirical distribution of `time` from the `lung` dataset.
