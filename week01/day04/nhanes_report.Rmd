@@ -23,3 +23,145 @@ knitr::opts_chunk$set(
   dpi = 150
 )
 ```
+
+## Introduction
+
+## Data preparation
+```{r}
+# Load the library for NHANES dataset
+library(NHANES)
+
+# Load the library for data manipulation
+library(dplyr)
+
+# Filter adult participants (age ≥ 18) and remove duplicated rows
+nhanes_adult <- NHANES |>
+  filter(Age >= 18) |>
+  distinct()
+
+# Number of remaining observartions
+nrow(nhanes_adult)
+```
+## Descriptive statistics
+```{r}
+# Load the library for function skewness()
+## to calculate the skewness of a distribution
+library(moments)
+
+# Load the library for bind_rows() function
+## to bind data row into a table
+library(dplyr)
+
+# Load the library for kable() function
+## to report a data frame as a formatted table
+library(knitr)
+
+# Define a custom function for descriptive statistics
+## The input of the function should be vector
+describe_numeric <- function(x, varname = "variable") {
+  x_clean <- x[!is.na(x)]
+  q1  <- quantile(x_clean, 0.25)
+  q3  <- quantile(x_clean, 0.75)
+  iqr <- q3 - q1
+
+  data.frame(
+    variable   = varname,
+    n          = length(x_clean),
+    n_missing  = sum(is.na(x)),
+    pct_missing = round(mean(is.na(x)) * 100, 1),
+    mean       = round(mean(x_clean), 2),
+    median     = round(median(x_clean), 2),
+    sd         = round(sd(x_clean), 2),
+    p25        = round(q1, 2),
+    p75        = round(q3, 2),
+    iqr        = round(iqr, 2),
+    min        = round(min(x_clean), 2),
+    max        = round(max(x_clean), 2),
+    skewness   = round(skewness(x_clean), 3),
+    n_outliers = sum(x_clean < (q1 - 1.5 * iqr) | x_clean > (q3 + 1.5 * iqr))
+  )
+}
+
+# Create a summary table
+summary_table <- bind_rows(
+  describe_numeric(nhanes_adult$BMI,      "BMI"),
+  describe_numeric(nhanes_adult$Age,      "Age"),
+  describe_numeric(nhanes_adult$BPSysAve, "Systolic BP"),
+  describe_numeric(nhanes_adult$BPDiaAve, "Diastolic BP"),
+  describe_numeric(nhanes_adult$TotChol,  "Total Cholesterol")
+)
+
+# Report the summary table
+kable(summary_table,
+      digits  = 2,
+      caption = "Table 1. Descriptive statistics for 
+                  key health indicators — NHANES adults (n ≥ 18)",
+      col.names = c("Variable", "N", "Missing", "% Missing",
+                    "Mean", "Median", "SD", "P25", "P75",
+                    "IQR", "Min", "Max", "Skewness", "N Outliers"))
+```
+## Distributions by Gender
+```{r, fig.cap = "Figure 1. Distribution of key health indicators by gender — NHANES"}
+# Load the library for function pivot_longer()
+## to reshape the dataset to long format
+library(tidyr)
+
+# Load the library for creating graph
+library(ggplot2)
+
+# Reshape the dataset to long format using pivot_longer()
+nhanes_long <- nhanes_adult |>
+  select(Gender, BMI, Age, BPSysAve, BPDiaAve, TotChol) |>
+  pivot_longer(cols = -Gender, names_to = "variable", values_to = "value") |>
+  filter(!is.na(value), !is.na(Gender))
+
+# Plot the boxplots
+## use facet_wrap() to split a plot into multiple plots
+## based on a categorical variable
+ggplot(nhanes_long, aes(x = Gender, y = value, fill = Gender)) +
+  geom_boxplot(outlier.size = 0.8, outlier.alpha = 0.4, outlier.color = "red") +
+  facet_wrap(~variable, scales = "free_y") +
+  labs(title = "Distribution of key health indicators by gender — NHANES",
+       x = NULL, y = "Value") +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+## BMI and Age
+```{r, fig.cap = "Figure 2. BMI vs age by gender — NHANES adults"}
+# Filter the dataset without missing value in BMI, Age, and Gender columns
+nhanes_bmi <- nhanes_adult |>
+  filter(!is.na(BMI), !is.na(Age), !is.na(Gender))
+
+# Plot the scatter plot
+ggplot(nhanes_bmi, aes(x = Age, y = BMI, color = Gender)) +
+  geom_point(alpha = 0.3, size = 0.8) +
+  geom_smooth(method = "loess", se = TRUE, linewidth = 1.2) +
+  ## method = "loess" means that smoothing line uses LOESS method
+  ### Locally Estimated Scatterplot Smoothing
+  ### se = TRUE means displaying the confidence band
+  labs(title = "BMI vs age by gender — NHANES adults",
+       x = "Age (years)", y = "BMI (kg/m²)") +
+  theme_minimal()
+```
+## Missing Data Summary
+```{r}
+# Filter variables with missing observation from summary_table
+summary_missing <- summary_table |>
+  select(variable, n_missing, pct_missing) |>
+  filter(n_missing > 0)
+
+# Report the summary table
+kable(summary_missing,
+      digits  = 2,
+      caption = "Table 2. Summary of missing data for 
+                  key health indicators — NHANES adults (n ≥ 18)",
+      col.names = c("Variable", "Missing", "% Missing"))
+```
+
+
+## Key Takeaways
+
+## Session Info
+```{r session-info}
+sessionInfo()
+```
