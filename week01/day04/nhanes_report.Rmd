@@ -5,6 +5,8 @@ date: "`r Sys.Date()`"
 output:
   html_document:
     theme: flatly
+    highlight: tango
+    css: style.css
     toc: true
     toc_float: true
     toc_depth: 3
