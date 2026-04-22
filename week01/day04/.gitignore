@@ -1,0 +1,13 @@
+# R temporary files
+.Rhistory
+.RData
+.Rproj.user/
+
+# Large data files (load from packages instead)
+*.csv
+*.rds
+*.RData
+
+# OS files
+.DS_Store
+Thumbs.db
