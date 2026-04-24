@@ -54,7 +54,7 @@ When we compare two quantities (e.g. the means of 2 population or the means of 2
 we can be confident that there is a difference between these two quantities. <br>
 
 However, the p-value is not associated with the magnitude of the difference. For example, when we compare the Average Systolic BP between 2 genders in NHANES dataset,
-the obtained p-value is smaller than $$2 \times 10^{-16}$, thus indicating that there is a difference between the means of Average Systolic BP between 2 genders.
+the obtained p-value is smaller than $2 \times 10^{-16}$, thus indicating that there is a difference between the means of Average Systolic BP between 2 genders.
 The difference between two means is 4.11 mmHg with the Cohen's size effect is 0.238, indicating only small effect. 
 Further more, in clinical practice, the difference of just 4.11 mmHg is not considered as a clinically significant difference<br>
 
@@ -144,9 +144,9 @@ pooled_sd <- sqrt(((n1 - 1) * sd1^2 + (n2 - 1) * sd2^2) / (n1 + n2 - 2))
 cohens_d <- abs(diff(t_result$estimate)) / pooled_sd
 
 ## Interpretation of Cohen's size effect
-cohens_i <- ifelse(cohens_d < 0.2, "negligible effec",
+cohens_i <- ifelse(cohens_d < 0.2, "negligible effect",
   ifelse(cohens_d < 0.5, "small effect",
-    ifelse(cohens_d < 0.8, "medium effec", "large effec")
+    ifelse(cohens_d < 0.8, "medium effect", "large effect")
   )
 )
 
@@ -171,7 +171,7 @@ kable(summary_t,
   )
 )
 ```
-As the obtained p-value is smaller than $$2 \times 10^{-16}$, we can reject the Null hypothesis of no difference.
+As the obtained p-value is smaller than $2 \times 10^{-16}$, we can reject the Null hypothesis of no difference.
 Therefore the difference in Average Systolic BP between genders is statistically significant. <br>
 
 However, as the Cohen's size effect is only 0.238, indicating only small effect, this difference is not cinically meaningful.
@@ -387,6 +387,57 @@ All the expected cell counts are larger than 5. Therefore, the chi-square test s
 * Get familiar with a lot of coding procedure such as pipeline, plotting figures, performing hypothesis test, etc.
 * Get familiar with the hypothesis testing, from checking the assumptions to reporting outputs and interpreting results
 * Get familiar with writing meaningful commit messages
+
+
+## Bonus: one-sample t-test
+* Null hypothesis $H_0$: There is no different between the mean BMI in NHANES adults and WHO overweight threshold
+* Alternative hypothesis $H_1$: There is different between the mean BMI in NHANES adults and WHO overweight threshold
+
+```{r}
+# Run the one-sample t-test
+bmi_one <- t.test(nhanes_adult$BMI, mu = 25, na.rm = TRUE)
+
+# Calculate Cohen's size effect
+
+## Calculate SD
+bmi_sd <- sd(nhanes_adult$BMI, na.rm = TRUE)
+
+## Calculate Cohen's size effect
+cohens_d_bmi <- abs(bmi_one$estimate - 25) / bmi_sd
+
+## Interpretation of Cohen's size effect
+cohens_i_bmi <- ifelse(cohens_d_bmi < 0.2, "negligible effect",
+  ifelse(cohens_d_bmi < 0.5, "small effect",
+    ifelse(cohens_d_bmi < 0.8, "medium effect", "large effect")
+  )
+)
+
+summary_t_bmi <- data.frame(
+  statistic = round(bmi_one$statistic, 3),
+  df        = round(bmi_one$parameter, 1),
+  p_value   = format.pval(bmi_one$p.value, digits = 3),
+  conf_low  = round(bmi_one$conf.int[1], 2),
+  conf_high = round(bmi_one$conf.int[2], 2),
+  cohen_d   = round(cohens_d_bmi, 3),
+  cohen_d   = cohens_i_bmi
+)
+
+# Report the summary table
+kable(summary_t_bmi,
+  caption = "Table 5. t-test of BMI and WHO overweight threshold 
+               — NHANES adults (over 18 years old)",
+  col.names = c("Statistic", "DF", "p-value", "95% CI Lower", "95% CI Upper",
+    "Cohen's d", "Interpretation"
+  )
+)
+```
+As the obtained p-value is smaller than $2 \times 10^{-16}$, we can reject the Null hypothesis of no difference.
+Therefore the difference between the mean of BMI in NHANES adults and WHO overweight threshold is statistically significant. <br>
+
+The Cohen's size effect is 0.55, indicating medium effect. 
+Therefore, public health professionals should be aware that the adult population in NHANES can be considered as overweight
+
+
 
 ## Session Info
 ```{r session-info}

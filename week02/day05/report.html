@@ -3212,7 +3212,7 @@ we can be confident that there is a difference between these two
 quantities. <br></p>
 <p>However, the p-value is not associated with the magnitude of the
 difference. For example, when we compare the Average Systolic BP between
-2 genders in NHANES dataset, the obtained p-value is smaller than $<span class="math inline">\(2 \times 10^{-16}\)</span>, thus indicating that
+2 genders in NHANES dataset, the obtained p-value is smaller than <span class="math inline">\(2 \times 10^{-16}\)</span>, thus indicating that
 there is a difference between the means of Average Systolic BP between 2
 genders. The difference between two means is 4.11 mmHg with the Cohen’s
 size effect is 0.238, indicating only small effect. Further more, in
@@ -3331,9 +3331,9 @@ t-test</h3>
 <span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>cohens_d <span class="ot">&lt;-</span> <span class="fu">abs</span>(<span class="fu">diff</span>(t_result<span class="sc">$</span>estimate)) <span class="sc">/</span> pooled_sd</span>
 <span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a></span>
 <span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="do">## Interpretation of Cohen&#39;s size effect</span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>cohens_i <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(cohens_d <span class="sc">&lt;</span> <span class="fl">0.2</span>, <span class="st">&quot;negligible effec&quot;</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>cohens_i <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(cohens_d <span class="sc">&lt;</span> <span class="fl">0.2</span>, <span class="st">&quot;negligible effect&quot;</span>,</span>
 <span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>  <span class="fu">ifelse</span>(cohens_d <span class="sc">&lt;</span> <span class="fl">0.5</span>, <span class="st">&quot;small effect&quot;</span>,</span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>    <span class="fu">ifelse</span>(cohens_d <span class="sc">&lt;</span> <span class="fl">0.8</span>, <span class="st">&quot;medium effec&quot;</span>, <span class="st">&quot;large effec&quot;</span>)</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>    <span class="fu">ifelse</span>(cohens_d <span class="sc">&lt;</span> <span class="fl">0.8</span>, <span class="st">&quot;medium effect&quot;</span>, <span class="st">&quot;large effect&quot;</span>)</span>
 <span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>  )</span>
 <span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>)</span>
 <span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a></span>
@@ -3396,9 +3396,10 @@ old)</caption>
 </tr>
 </tbody>
 </table>
-<p>As the obtained p-value is smaller than $<span class="math inline">\(2 \times 10^{-16}\)</span>, we can reject the Null
-hypothesis of no difference. Therefore the difference in Average
-Systolic BP between genders is statistically significant. <br></p>
+<p>As the obtained p-value is smaller than <span class="math inline">\(2
+\times 10^{-16}\)</span>, we can reject the Null hypothesis of no
+difference. Therefore the difference in Average Systolic BP between
+genders is statistically significant. <br></p>
 <p>However, as the Cohen’s size effect is only 0.238, indicating only
 small effect, this difference is not cinically meaningful.</p>
 </div>
@@ -3769,9 +3770,103 @@ assumptions to reporting outputs and interpreting results</li>
 <li>Get familiar with writing meaningful commit messages</li>
 </ul>
 </div>
-<div id="session-info" class="section level2" number="7">
-<h2><span class="header-section-number">7</span> Session Info</h2>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
+<div id="bonus-one-sample-t-test" class="section level2" number="7">
+<h2><span class="header-section-number">7</span> Bonus: one-sample
+t-test</h2>
+<ul>
+<li>Null hypothesis <span class="math inline">\(H_0\)</span>: There is
+no different between the mean BMI in NHANES adults and WHO overweight
+threshold</li>
+<li>Alternative hypothesis <span class="math inline">\(H_1\)</span>:
+There is different between the mean BMI in NHANES adults and WHO
+overweight threshold</li>
+</ul>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># Run the one-sample t-test</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>bmi_one <span class="ot">&lt;-</span> <span class="fu">t.test</span>(nhanes_adult<span class="sc">$</span>BMI, <span class="at">mu =</span> <span class="dv">25</span>, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co"># Calculate Cohen&#39;s size effect</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="do">## Calculate SD</span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>bmi_sd <span class="ot">&lt;-</span> <span class="fu">sd</span>(nhanes_adult<span class="sc">$</span>BMI, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="do">## Calculate Cohen&#39;s size effect</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>cohens_d_bmi <span class="ot">&lt;-</span> <span class="fu">abs</span>(bmi_one<span class="sc">$</span>estimate <span class="sc">-</span> <span class="dv">25</span>) <span class="sc">/</span> bmi_sd</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="do">## Interpretation of Cohen&#39;s size effect</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>cohens_i_bmi <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(cohens_d_bmi <span class="sc">&lt;</span> <span class="fl">0.2</span>, <span class="st">&quot;negligible effect&quot;</span>,</span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>  <span class="fu">ifelse</span>(cohens_d_bmi <span class="sc">&lt;</span> <span class="fl">0.5</span>, <span class="st">&quot;small effect&quot;</span>,</span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a>    <span class="fu">ifelse</span>(cohens_d_bmi <span class="sc">&lt;</span> <span class="fl">0.8</span>, <span class="st">&quot;medium effect&quot;</span>, <span class="st">&quot;large effect&quot;</span>)</span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a>  )</span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a>)</span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a>summary_t_bmi <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a>  <span class="at">statistic =</span> <span class="fu">round</span>(bmi_one<span class="sc">$</span>statistic, <span class="dv">3</span>),</span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a>  <span class="at">df        =</span> <span class="fu">round</span>(bmi_one<span class="sc">$</span>parameter, <span class="dv">1</span>),</span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a>  <span class="at">p_value   =</span> <span class="fu">format.pval</span>(bmi_one<span class="sc">$</span>p.value, <span class="at">digits =</span> <span class="dv">3</span>),</span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a>  <span class="at">conf_low  =</span> <span class="fu">round</span>(bmi_one<span class="sc">$</span>conf.int[<span class="dv">1</span>], <span class="dv">2</span>),</span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a>  <span class="at">conf_high =</span> <span class="fu">round</span>(bmi_one<span class="sc">$</span>conf.int[<span class="dv">2</span>], <span class="dv">2</span>),</span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a>  <span class="at">cohen_d   =</span> <span class="fu">round</span>(cohens_d_bmi, <span class="dv">3</span>),</span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a>  <span class="at">cohen_d   =</span> cohens_i_bmi</span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a>)</span>
+<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a></span>
+<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a><span class="co"># Report the summary table</span></span>
+<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a><span class="fu">kable</span>(summary_t_bmi,</span>
+<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a>  <span class="at">caption =</span> <span class="st">&quot;Table 5. t-test of BMI and WHO overweight threshold </span></span>
+<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a><span class="st">               — NHANES adults (over 18 years old)&quot;</span>,</span>
+<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a>  <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">&quot;Statistic&quot;</span>, <span class="st">&quot;DF&quot;</span>, <span class="st">&quot;p-value&quot;</span>, <span class="st">&quot;95% CI Lower&quot;</span>, <span class="st">&quot;95% CI Upper&quot;</span>,</span>
+<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a>    <span class="st">&quot;Cohen&#39;s d&quot;</span>, <span class="st">&quot;Interpretation&quot;</span></span>
+<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a>  )</span>
+<span id="cb13-36"><a href="#cb13-36" tabindex="-1"></a>)</span></code></pre></div>
+<table>
+<caption>Table 5. t-test of BMI and WHO overweight threshold — NHANES
+adults (over 18 years old)</caption>
+<colgroup>
+<col width="3%" />
+<col width="12%" />
+<col width="6%" />
+<col width="10%" />
+<col width="16%" />
+<col width="16%" />
+<col width="12%" />
+<col width="19%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Statistic</th>
+<th align="right">DF</th>
+<th align="left">p-value</th>
+<th align="right">95% CI Lower</th>
+<th align="right">95% CI Upper</th>
+<th align="right">Cohen’s d</th>
+<th align="left">Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">t</td>
+<td align="right">41.278</td>
+<td align="right">5624</td>
+<td align="left">&lt;2e-16</td>
+<td align="right">28.54</td>
+<td align="right">28.89</td>
+<td align="right">0.55</td>
+<td align="left">medium effect</td>
+</tr>
+</tbody>
+</table>
+<p>As the obtained p-value is smaller than <span class="math inline">\(2
+\times 10^{-16}\)</span>, we can reject the Null hypothesis of no
+difference. Therefore the difference between the mean of BMI in NHANES
+adults and WHO overweight threshold is statistically significant.
+<br></p>
+<p>The Cohen’s size effect is 0.55, indicating medium effect. Therefore,
+public health professionals should be aware that the adult population in
+NHANES can be considered as overweight</p>
+</div>
+<div id="session-info" class="section level2" number="8">
+<h2><span class="header-section-number">8</span> Session Info</h2>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
 <pre><code>## R version 4.5.3 (2026-03-11 ucrt)
 ## Platform: x86_64-w64-mingw32/x64
 ## Running under: Windows 10 x64 (build 19045)

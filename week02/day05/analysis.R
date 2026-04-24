@@ -201,7 +201,7 @@ ggsave("./week02/day05/output/bmi_normality_check.png",
   (p_hist_m | p_hist_f) / (p_qq_m | p_qq_f), width = 9, height = 8, dpi = 150
 )
 
-# Step 3 — State hypotheses and Significant level
+# Step 3 — State hypotheses
 ## H0: BMI distribution is identical in males and females
 ## H1: BMI distributions differ between males and females
 
@@ -274,7 +274,11 @@ ggsave("./week02/day05/output/diabetes_smoking_table.png",
   width = 7, height = 5, dpi = 150
 )
 
-# Step 3 - Run the chi-squared test
+# Step 3 - State hypotheses
+## H0: There is no association between Diabetes status and Smoking prevalence
+## H1: There is an association between Diabetes status and Smoking prevalence
+
+# Step 4 - Run the chi-squared test
 chi_result <- chisq.test(cont_table)
 print(chi_result)
 
@@ -301,4 +305,43 @@ cat("Cramér's V:", round(cramers_v, 3), "—",
       ifelse(cramers_v < 0.5, "medium", "large")
     )
   ), "association\n"
+)
+
+
+#=== Bonus: one-sample t-test ===#
+
+# Step 1 - State hypotheses
+## H0: mean BMI in NHANES adults = 25 (WHO overweight threshold)
+## H1: mean BMI ≠ 25
+
+# Step 2 - Run the one-sample t-test
+bmi_one <- t.test(nhanes_adult$BMI, mu = 25, na.rm = TRUE)
+print(bmi_one)
+
+# Step 3 -  Extract and print key values from one-sample t-test output
+cat("Summary of t-test of BMI and WHO overweight threshold", "\n",
+  "t-statistic        :", round(bmi_one$statistic, 3), "\n",
+  "Degrees of freedom :", round(bmi_one$parameter, 1), "\n",
+  ## specialized formar for p-values
+  "p-value            :", format.pval(bmi_one$p.value, digits = 3), "\n",
+  "Mean BMI           :", round(bmi_one$estimate, 2), "kg/m2", "\n",
+  "95% CI for difference in means: [",
+  round(bmi_one$conf.int[1], 2), ",", round(bmi_one$conf.int[2], 2), "]\n"
+)
+
+# Step 4 - Compute Cohen's size effect
+
+## Calculate SD
+bmi_sd <- sd(nhanes_adult$BMI, na.rm = TRUE)
+
+## Calculate Cohen's size effect
+cohens_d_bmi <- abs(bmi_one$estimate - 25) / bmi_sd
+
+## Print the interpretation of Cohen's size effect
+cat("Cohen's d:", round(cohens_d_bmi, 3), "—",
+  ifelse(cohens_d_bmi < 0.2, "negligible",
+    ifelse(cohens_d_bmi < 0.5, "small",
+      ifelse(cohens_d_bmi < 0.8, "medium", "large")
+    )
+  ), "effect\n"
 )
