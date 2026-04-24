@@ -25,3 +25,370 @@ knitr::opts_chunk$set(
   dpi = 150
 )
 ```
+
+## Background
+
+Hypothesis testing in statistics is a method for making decisions about a population based on sample data. 
+Instead of collecting data from an entire population, a sample is taken from the population and the hypothesis test is conducted to find 
+whether the evidence supports or contradicts an assumption about that population. <br>
+
+The assumptions about the population is called the hypotheses. There are 2 commonly stated hypotheses in the hypothesis testing, 
+which are the **Null hypothesis** $H_0$, usually stating that there is no difference or no relationship, and the **Alternative hypothesis**
+$H_1$, usually stating that there are some differences or some relationships.
+
+Hypothesis testing is central to biostatistics because it allows biostatisticians to make inference of the whole population based on just a small fraction of it. 
+Leading to resources saving and fulfillment of ethical principles.
+
+## The p-value
+### What does a p-value actually measure
+The p-value measures the probability of obtaining results at least as extreme as the observed results, assuming that the 
+Null hypothesis $H_0$ is true. Therefore, if the p-value is small, we can conclude that the chance of obtaining the observed results is low
+under $H_0$. <br>
+
+When the p-value is smaller than a threshold or a significant level $\alpha$, usually 0.05, there is enough evidence
+to reject the Null hypothesis.
+
+### Why is p < 0.05 not the same as "important"
+When the significant level is set at 0.05 and the obtained p-value < 0.05, we can reject the Null hypothesis of no difference or no relationship.
+When we compare two quantities (e.g. the means of 2 population or the means of 2 samples), if we reject the Null hypothesis, 
+we can be confident that there is a difference between these two quantities. <br>
+
+However, the p-value is not associated with the magnitude of the difference. For example, when we compare the Average Systolic BP between 2 genders in NHANES dataset,
+the obtained p-value is smaller than $$2 \times 10^{-16}$, thus indicating that there is a difference between the means of Average Systolic BP between 2 genders.
+The difference between two means is 4.11 mmHg with the Cohen's size effect is 0.238, indicating only small effect. 
+Further more, in clinical practice, the difference of just 4.11 mmHg is not considered as a clinically significant difference<br>
+
+Thus a result can be highly significant and clinically trivial at the same time.
+
+
+### What must always accompany a p-value?
+The outputs commonly accompany with a p-value are effect size, confidence interval, and sample size.
+* **effect size**: as stated above, the effect size should be reported with the p-value for consideration in clinical practice.
+The difference may be statistically significant but not clinically significant.
+
+* **sample size**: one of the key factors to evaluate the power of the test. Usually a large sample is associated with a high power test.
+When the p-value may not be small enough to reject the Null hypothesis, one can think of the reason that the sample size is not large enough to give the test enough power to detect the difference.
+However, in reverse, one might think that with thousands of observations, even a small difference would produce such a small p-value.
+
+* **confidence interval**: a range of values, derived from sample data, that likely contains the true value of an unknown population parameter.
+It indicates the precision of an estimate, usually expressed with a percentage (e.g., 95% confident) that the interval captures the true value in repeated sampling.
+
+## Test 1 — Average Systolic BP by Gender (t-test)
+* Null hypothesis $H_0$: there is no difference between the mean of the Average Systolic blood pressure across genders
+* Alternative hypothesis $H_1$: there is a difference between the mean of the Average Systolic blood pressure across genders
+
+### Data preparation
+```{r}
+# Load the library
+library(NHANES) ## For NHANES dataset
+library(dplyr) ## For data manipulation
+library(ggplot2) ## For graphs
+library(moments) ## For skewness() function
+library(patchwork) ## To combine multiple plots into a single layout
+library(knitr) ## For kable() function
+library(kableExtra) ## For styling kable table
+
+# Filter the adult population from NHANES dataset
+## remove all duplicate rows
+nhanes_adult <- NHANES |>
+  filter(Age >= 18) |>
+  distinct()
+
+# Remove rows with missing data
+bp_data <- nhanes_adult |>
+  filter(!is.na(BPSysAve), !is.na(Gender))
+```
+
+### Density plots and Q-Q plots of Average Systolic BP by gender
+```{r, fig.cap = "Figure 1. Density plots and Q-Q plots of Average Systolic BP by gender — NHANES adults (over 18 years old)"}
+# Create density curves of Average Systolic BP by gender
+p1 <- ggplot(bp_data, aes(x = BPSysAve, fill = Gender, color = Gender)) +
+  geom_density(alpha = 0.35, linewidth = 0.8) +
+  geom_vline(
+    data = bp_data |>
+      group_by(Gender) |>
+      summarise(m = mean(BPSysAve)), ### create a dataset of the means
+    aes(xintercept = m, color = Gender), linetype = "dashed"
+  ) +
+  labs(title = "Average Systolic BP distribution by gender",
+       x = "Average Systolic BP (mmHg)", y = "Density") +
+  theme_minimal()
+
+# Create Q-Q plots of Average Systolic BP by gender
+p2 <- ggplot(bp_data, aes(sample = BPSysAve, color = Gender)) +
+  ### "sample =" is a specialized aesthetic mapping for Q-Q plot
+  stat_qq() + stat_qq_line() +
+  facet_wrap(~Gender) +
+  labs(title = "Q-Q plots — Average Systolic BP by gender",
+       x = "Theoretical quantiles", y = "Sample quantiles") +
+  theme_minimal()
+
+# Create the combined plot
+p1 / p2
+```
+
+### Results of Welch’s t-test
+```{r}
+# Run the Welch’s t-test
+t_result <- t.test(BPSysAve ~ Gender, data = bp_data, var.equal = FALSE)
+
+# Calculate Cohen's size effect
+## Calculate pooled SD
+n1        <- sum(bp_data$Gender == "male")
+n2        <- sum(bp_data$Gender == "female")
+sd1       <- sd(bp_data$BPSysAve[bp_data$Gender == "male"])
+sd2       <- sd(bp_data$BPSysAve[bp_data$Gender == "female"])
+pooled_sd <- sqrt(((n1 - 1) * sd1^2 + (n2 - 1) * sd2^2) / (n1 + n2 - 2))
+
+## Calculate Cohen's size effect
+cohens_d <- abs(diff(t_result$estimate)) / pooled_sd
+
+## Interpretation of Cohen's size effect
+cohens_i <- ifelse(cohens_d < 0.2, "negligible effec",
+  ifelse(cohens_d < 0.5, "small effect",
+    ifelse(cohens_d < 0.8, "medium effec", "large effec")
+  )
+)
+
+# Create the summary table
+summary_t <- data.frame(
+  statistic = round(t_result$statistic, 3),
+  df        = round(t_result$parameter, 1),
+  p_value   = format.pval(t_result$p.value, digits = 3),
+  conf_low  = round(t_result$conf.int[1], 2),
+  conf_high = round(t_result$conf.int[2], 2),
+  cohen_d   = round(cohens_d, 3),
+  cohen_d   = cohens_i
+)
+
+# Report the summary table
+kable(summary_t,
+  caption = "Table 1. Welch’s t-test  
+              of Average Systolic BP by gender — NHANES adults 
+              (over 18 years old)",
+  col.names = c("Statistic", "DF", "p-value", "95% CI Lower", "95% CI Upper",
+    "Cohen's d", "Interpretation"
+  )
+)
+```
+As the obtained p-value is smaller than $$2 \times 10^{-16}$, we can reject the Null hypothesis of no difference.
+Therefore the difference in Average Systolic BP between genders is statistically significant. <br>
+
+However, as the Cohen's size effect is only 0.238, indicating only small effect, this difference is not cinically meaningful.
+
+## Test 2 — BMI by Gender (Wilcoxon)
+* Null hypothesis $H_0$: BMI distribution is identical in males and females
+* Alternative hypothesis $H_1$: BMI distributions differ between males and females
+
+### Data preparation
+```{r}
+# Remove rows with missing data
+bmi_data <- nhanes_adult |> 
+  filter(!is.na(BMI), !is.na(Gender))
+
+# Filter male data
+bmi_data_male <- bmi_data |>
+  filter(Gender == "male")
+
+# Filter female data
+bmi_data_female <- bmi_data |>
+  filter(Gender == "female")
+```
+
+### Histograms and Q-Q plots of BMI by gender
+```{r, fig.cap = "Figure 2. Histograms and Q-Q plots of BMI by gender — NHANES adults (over 18 years old)"}
+# Create histograms of BMI of male
+p_hist_m <- ggplot(bmi_data_male, aes(x = BMI)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 40, fill = "skyblue",
+                 color = "black") +
+  stat_function(fun = dnorm,
+    args = list(mean = mean(bmi_data_male$BMI),
+                sd = sd(bmi_data_male$BMI)),
+    colour = "red"
+  ) +
+  labs(title = "BMI distribution of male",
+       x = "BMI (kg/m2)", y = "Density") +
+  theme_minimal()
+
+# Create histograms of BMI of female
+p_hist_f <- ggplot(bmi_data_female, aes(x = BMI)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 40, fill = "pink1",
+                 color = "black") +
+  stat_function(fun = dnorm,
+    args = list(mean = mean(bmi_data_female$BMI),
+                sd = sd(bmi_data_female$BMI)),
+    colour = "red"
+  ) +
+  labs(title = "BMI distribution of female",
+       x = "BMI (kg/m2)", y = "Density") +
+  theme_minimal()
+
+# Create Q-Q plots of BMI of male
+p_qq_m <- ggplot(bmi_data_male, aes(sample = BMI)) +
+  stat_qq(color = "skyblue") + stat_qq_line(color = "skyblue") +
+  labs(title = "Q-Q plots — BMI of male",
+       x = "Theoretical quantiles", y = "Sample quantiles") +
+  theme_minimal()
+
+# Create Q-Q plots of BMI of female
+p_qq_f <- ggplot(bmi_data_female, aes(sample = BMI)) +
+  stat_qq(color = "pink1") + stat_qq_line(color = "pink1") +
+  labs(title = "Q-Q plots — BMI of female",
+       x = "Theoretical quantiles", y = "Sample quantiles") +
+  theme_minimal()
+
+# Create the combined plot
+(p_hist_m | p_hist_f) / (p_qq_m | p_qq_f)
+```
+
+From the histograms and and Q-Q plots, we can see that the distributions of BMI by gender are not normal, 
+which violates the assumption of normality when using t-test. 
+Therefore, the nonparametric Wilcoxon rank-sum test is used
+
+### Results of Wilcoxon rank-sum test
+```{r}
+# Run the Wilcoxon rank-sum test
+wilcox_result <- wilcox.test(BMI ~ Gender, data = bmi_data, conf.int = TRUE)
+
+# Calculate medians and IQRs per group
+bmi_median <- bmi_data |>
+  group_by(Gender) |>
+  summarise(
+    n      = n(),
+    median = median(BMI),
+    iqr    = IQR(BMI)
+  )
+
+# Create a summary table
+summary_w <- data.frame(
+  statistic = wilcox_result$statistic,
+  p_value   = format.pval(wilcox_result$p.value, digits = 3),
+  conf_low  = round(wilcox_result$conf.int[1], 2),
+  conf_high = round(wilcox_result$conf.int[2], 2),
+  m_m       = bmi_median$median[2],
+  m_f       = bmi_median$median[1],
+  i_m       = bmi_median$iqr[2],
+  i_f       = bmi_median$iqr[1]
+)
+
+
+# Report the summary table
+kable(summary_w,
+  caption = "Table 2. Wilcoxon rank-sum test  
+              of BMI by gender — NHANES adults 
+              over 18 years old)",
+  col.names = c("W statistic", "p-value", "95% CI Lower", "95% CI Upper",
+    "BMI Median in Male", "BMI Median in Female", "Male IQR", "Female IQR"
+  )
+)
+```
+As the obtained p-value is 0.0838, we can not reject the Null hypothesis of no difference.
+Therefore there is not statistically significant difference in BMI between genders. 
+The BMI medians of male and female are 27.8 and 27.33, respectively. <br>
+
+## Test 3 — Diabetes and Smoking (Chi-squared)
+* Null hypothesis $H_0$: There is no association between Diabetes status and Smoking prevalence
+* Alternative hypothesis $H_1$:  There is an association between Diabetes status and Smoking prevalence
+
+### Data preparation
+```{r}
+# Remove rows with missing data
+diab_smoke <- nhanes_adult |>
+  filter(!is.na(Diabetes), !is.na(SmokeNow))
+```
+
+### Visualization of Smoking prevalence by diabetes status
+```{r, fig.cap = "Figure 3. Smoking prevalence by diabetes status — NHANES adults (over 18 years old)"}
+diab_smoke |>
+  count(Diabetes, SmokeNow) |>
+  group_by(Diabetes) |>
+  mutate(pct = n / sum(n) * 100) |>
+  ggplot(aes(x = Diabetes, y = pct, fill = SmokeNow)) +
+  geom_col(position = "dodge", width = 0.6) +
+  geom_text(aes(label = paste0(round(pct, 1), "%")),
+            position = position_dodge(width = 0.6),
+            vjust = -0.4, size = 3.5) +
+  labs(title = "Smoking prevalence by diabetes status 
+                — NHANES adults (over 18 years old)",
+       x = "Diabetes status", y = "Percentage (%)",
+       fill = "Currently smoking") +
+  scale_fill_manual(values = c("Yes" = "#e07b5a", "No" = "#5a9ec4")) +
+  theme_minimal()
+```
+
+### Contingency table between Smoking prevalence by diabetes status
+```{r}
+# Create contingency table
+cont_table <- table(Diabetes = diab_smoke$Diabetes,
+  SmokeNow = diab_smoke$SmokeNow
+) |>
+  prop.table(margin = 1) * 100
+
+# Report contingency table
+kable(cont_table,
+  digits = 1,
+  caption = "Table 3. Contingency table of Smoking prevalence 
+              by Diabetes status — NHANES adults 
+              (over 18 years old)",
+) |>
+  add_header_above(c("Diabetes status" = 1, "Smoking prevalence" = 2))
+```
+
+### Results of chi-squared test
+```{r}
+# Run the chi-squared test
+chi_result <- chisq.test(cont_table)
+
+# Calculate Cramér's V (effect size)
+n         <- sum(cont_table)
+cramers_v <- sqrt(chi_result$statistic /
+                    (n * (min(nrow(cont_table), ncol(cont_table)) - 1)))
+
+# Interpretation of Cohen's size effect
+cramers_i <- ifelse(cramers_v < 0.1, "negligible association",
+  ifelse(cramers_v < 0.3, "small association",
+    ifelse(cramers_v < 0.5, "medium association", "large association")
+  )
+)
+
+# Create a summary table
+summary_chi <- data.frame(
+  statistic = round(chi_result$statistic, 3),
+  df        = chi_result$parameter,
+  p_value   = format.pval(chi_result$p.value, digits = 3),
+  cramers_v = round(cramers_v, 3),
+  cramers_i = cramers_i
+)
+
+# Report the summary table
+kable(summary_chi,
+  caption = "Table 4. Chi-squared test of association between  
+              Smoking prevalence and Diabetes status — NHANES adults 
+              (over 18 years old)",
+  col.names = c("Chi-sq", "DF", "p-value", "Cramér's V", "Interpretation"
+  )
+)
+```
+
+### Verify the expected cell counts
+```{r}
+print(round(chi_result$expected, 1))
+```
+As the obtained p-value is 0.00832, we can reject the Null hypothesis of no association.
+Therefore there is an association between Smoking prevalence and Diabetes status <br>
+
+However, as the Cramér’s V is only 0.187, there is only a small association between
+Smoking prevalence and Diabetes status <br>
+
+All the expected cell counts are larger than 5. Therefore, the chi-square test statistic is valid.
+
+
+## Reflection
+* Get familiar with a lot of coding procedure such as pipeline, plotting figures, performing hypothesis test, etc.
+* Get familiar with the hypothesis testing, from checking the assumptions to reporting outputs and interpreting results
+* Get familiar with writing meaningful commit messages
+
+## Session Info
+```{r session-info}
+sessionInfo()
+```
