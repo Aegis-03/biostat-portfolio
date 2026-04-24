@@ -1,5 +1,5 @@
 #============================================================
-# Task 002 — Lung Cancer Dataset: Initial EDA
+# Task 002 — Probability distribution
 # Dataset: lung (survival package)
 # Author: [T.V.Q]
 # Date: [14 April 2026]

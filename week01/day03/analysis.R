@@ -1,6 +1,6 @@
 #============================================================
-# Task 003 — Lung Cancer Dataset: Initial EDA
-# Dataset: lung (survival package)
+# Task 003 — Descriptive Statistics
+# Dataset: NHANES (NHANES package)
 # Author: [T.V.Q]
 # Date: [15 April 2026]
 # ============================================================

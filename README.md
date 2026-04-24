@@ -14,3 +14,5 @@ epidemiology, and clinical trial methods — using R and Python.
 [Day 3](week01/day03/) Descriptive Statistics in depth and First reusable function <br>
 
 [Day 4](week01/day04/) Git Workflow and R Markdown <br>
+
+[Day 5](week02/day05/) Hypothesis Testing: t-test, Wilcoxon, Chi-squared <br>
