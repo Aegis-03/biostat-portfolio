@@ -16,3 +16,5 @@ epidemiology, and clinical trial methods — using R and Python.
 [Day 4](week01/day04/) Git Workflow and R Markdown <br>
 
 [Day 5](week02/day05/) Hypothesis Testing: t-test, Wilcoxon, Chi-squared <br>
+
+[Day 6](week02/day06/) Linear Regression <br>
