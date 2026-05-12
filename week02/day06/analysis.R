@@ -67,6 +67,7 @@ p_bmi <- ggplot(nhanes, aes(x = BMI, y = BPSysAve)) +
   labs(title = "BP vs BMI", x = "BMI (kg/m²)", y = "Systolic BP (mmHg)") +
   theme_minimal()
 
+# Box plot
 #   Variables: BPSysAve vs Gender
 p_gender <- ggplot(nhanes, aes(x = Gender, y = BPSysAve, fill = Gender)) +
   geom_boxplot(alpha = 0.6, outlier.size = 0.5) +
@@ -199,7 +200,7 @@ m3_tidy |>
   ggplot(aes(x = estimate, y = term)) +
   geom_vline(xintercept = 0, linetype = "dashed", color = "grey50") +
   geom_errorbar(aes(xmin = conf.low, xmax = conf.high), orientation = "y",
-                 height = 0.2, linewidth = 0.8, color = "steelblue") +
+                height = 0.2, linewidth = 0.8, color = "steelblue") +
   geom_point(size = 3, color = "steelblue") +
   geom_text(aes(label = paste0("β = ", estimate, "\n95% CI [",
       conf.low, ", ", conf.high, "]"
@@ -291,3 +292,17 @@ tbl_regression(m3,
   ) |>
   bold_p(t = 0.05) |>
   bold_labels()
+
+
+#==================================================
+# Bonus: Add a quadratic term
+#==================================================
+
+# Create a column of the quadratic term of Age
+nhanes <- nhanes |> mutate(Age2 = Age^2)
+
+# Model 4: Age + Gender + BMI + Age²
+m4 <- lm(BPSysAve ~ Age + Age2 + Gender + BMI, data = nhanes)
+
+# Compare M3 vs M4 with a likelihood ratio test
+anova(m3, m4)
